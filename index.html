@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arimani Scanner</title>
+    <style>
+        :root {
+            --bg-color: #0d0f12;
+            --card-bg: #161b22;
+            --accent-gold: #f59e0b;
+            --accent-hover: #d97706;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --border-color: #242c38;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 25px 15px;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 35px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        /* Header Styling */
+        .title-header {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Malayalam Banner Quote */
+        .quote-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px dashed var(--accent-gold);
+            color: #fcd34d;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #0d1117;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-gold);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Status & Results Section */
+        #statusMessage {
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            min-height: 28px;
+            word-break: break-word;
+        }
+
+        .result-wrapper {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+
+        .spinner {
+            display: none;
+            margin: 15px auto;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-gold);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="title-header">Arimani Scanner</h1>
+    
+    <div class="quote-banner">
+        "ഓരോ അരിമണിയിലുമുണ്ട് അത് കഴിക്കുന്ന ആളുടെ പേര്"
+    </div>
+
+    <div class="form-group">
+        <label for="imageInput">Upload Rice Bowl Photo:</label>
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+
+    <div class="form-group">
+        <label for="nameInput">Enter Target Name:</label>
+        <input type="text" id="nameInput" placeholder="Enter name (e.g., Simya)">
+    </div>
+
+    <button onclick="scanRiceGrains()">Scan Rice Grains</button>
+
+    <div class="spinner" id="loadingSpinner"></div>
+    <div id="statusMessage"></div>
+
+    <div class="result-wrapper">
+        <img id="resultImage" src="" style="display: none;" alt="Processed Rice Output">
+    </div>
+</div>
+
+<script>
+async function scanRiceGrains() {
+    const fileInput = document.getElementById('imageInput');
+    const nameInput = document.getElementById('nameInput');
+    const statusDiv = document.getElementById('statusMessage');
+    const resultImg = document.getElementById('resultImage');
+    const spinner = document.getElementById('loadingSpinner');
+
+    const name = nameInput.value.trim() || 'Simya';
+
+    if (!fileInput.files[0]) {
+        alert("Please select a rice photo first!");
+        return;
+    }
+
+    // UI Loading state
+    statusDiv.style.color = "#f59e0b";
+    statusDiv.innerText = "Analyzing rice grains and applying labels...";
+    spinner.style.display = "block";
+    resultImg.style.display = "none";
+
+    const reader = new FileReader();
+    reader.onloadend = async function () {
+        const base64Image = reader.result;
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/scan-rice', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, image: base64Image })
+            });
+
+            const data = await response.json();
+            spinner.style.display = "none";
+
+            if (data.status === 'success') {
+                statusDiv.style.color = "#10b981";
+                // Displays exact status: "Found [count] grains are not reserved for [name]"
+                statusDiv.innerText = data.message;
+                resultImg.src = data.image;
+                resultImg.style.display = "block";
+            } else {
+                statusDiv.style.color = "#ef4444";
+                statusDiv.innerText = "Error: " + (data.message || "Failed to process image.");
+            }
+        } catch (err) {
+            spinner.style.display = "none";
+            statusDiv.style.color = "#ef4444";
+            statusDiv.innerText = "Connection error. Make sure app.py is running on port 5000.";
+            console.error(err);
+        }
+    };
+
+    reader.readAsDataURL(fileInput.files[0]);
+}
+</script>
+
+</body>
+</html>
